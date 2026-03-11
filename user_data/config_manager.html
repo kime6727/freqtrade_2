@@ -340,11 +340,16 @@
         async function loadConfig() {
             try {
                 showStatus('正在获取配置...', 'info');
-                const config = await apiRequest('/show_config');
-                currentConfig = config;
-                document.getElementById('configJson').value = JSON.stringify(config, null, 2);
-                document.getElementById('configPanel').classList.add('active');
-                showStatus('✅ 配置已加载！', 'success');
+                const response = await fetch('/api/config');
+                const result = await response.json();
+                if (result.status === 'success') {
+                    currentConfig = result.data;
+                    document.getElementById('configJson').value = JSON.stringify(result.data, null, 2);
+                    document.getElementById('configPanel').classList.add('active');
+                    showStatus('✅ 配置已加载！', 'success');
+                } else {
+                    showStatus('❌ 获取配置失败: ' + result.message, 'error');
+                }
             } catch (error) {
                 showStatus('❌ 获取配置失败: ' + error.message, 'error');
             }
@@ -391,33 +396,11 @@
         }
 
         async function reloadBotConfig() {
-            try {
-                showStatus('正在重载配置...', 'info');
-                const result = await apiRequest('/reload_config', 'POST');
-                showStatus('✅ 配置已重载！变更已生效。', 'success');
-            } catch (error) {
-                showStatus('❌ 重载失败: ' + error.message, 'error');
-            }
+            showStatus('✅ 配置已保存！请在Dokploy中重启freqtrade容器使配置生效。', 'success');
         }
 
         async function restartBot() {
-            if (!confirm('确定要重启Bot吗？这将中断当前交易。')) {
-                return;
-            }
-            try {
-                showStatus('正在重启Bot...', 'info');
-                await apiRequest('/stop', 'POST');
-                setTimeout(async () => {
-                    try {
-                        await apiRequest('/start', 'POST');
-                        showStatus('✅ Bot已重启！', 'success');
-                    } catch (e) {
-                        showStatus('❌ 启动失败: ' + e.message, 'error');
-                    }
-                }, 3000);
-            } catch (error) {
-                showStatus('❌ 重启失败: ' + error.message, 'error');
-            }
+            showStatus('ℹ️ 请在Dokploy中重启freqtrade容器', 'info');
         }
 
         function formatJson() {
