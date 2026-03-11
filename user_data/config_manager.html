@@ -370,8 +370,7 @@
 
             try {
                 showStatus('正在保存配置...', 'info');
-                const creds = getApiCredentials();
-                const saveUrl = `http://${window.location.hostname}:8081/api/v1/save_config`;
+                const saveUrl = '/api/v1/save_config';
                 const response = await fetch(saveUrl, {
                     method: 'POST',
                     headers: {

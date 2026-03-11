@@ -7,7 +7,13 @@ services:
     volumes:
       - "./user_data:/freqtrade/user_data"
     ports:
-      - "0.0.0.0:8080:8080"
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/api/v1/ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     command: >
       trade
       --logfile /freqtrade/user_data/logs/freqtrade.log
@@ -16,15 +22,20 @@ services:
       --strategy SampleStrategy
 
   config-api:
-    image: python:3.11-slim
+    build:
+      context: .
+      dockerfile: config_api.Dockerfile
     restart: unless-stopped
     container_name: freqtrade-config-api
     volumes:
       - "./user_data:/freqtrade/user_data"
     ports:
-      - "0.0.0.0:8081:8081"
-    working_dir: /freqtrade/user_data
-    command: >
-      sh -c "pip install flask -q && python config_api.py"
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     environment:
       - CONFIG_PATH=/freqtrade/user_data/config.json
