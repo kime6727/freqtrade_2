@@ -8,16 +8,12 @@ services:
       - "./user_data:/freqtrade/user_data"
     ports:
       - "0.0.0.0:8080:8080"
-    environment:
-      - CONFIG_PATH=/freqtrade/user_data/config.json
     command: >
       trade
       --logfile /freqtrade/user_data/logs/freqtrade.log
       --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
       --config /freqtrade/user_data/config.json
       --strategy SampleStrategy
-    depends_on:
-      - config-api
 
   config-api:
     image: python:3.11-slim
