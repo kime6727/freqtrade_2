@@ -10,9 +10,9 @@ services:
     ports:
       - "8080:8080"
     command: >
-      sh -c "mkdir -p /freqtrade/user_data/data/binance && 
-             mkdir -p /freqtrade/user_data/logs &&
-             webserver --config /freqtrade/user_data/config.json"
+      trade
+      --config /freqtrade/user_data/config.json
+      --strategy PatternRecorder
 
   config-api:
     build:
