@@ -1,17 +1,8 @@
 from freqtrade.strategy import IStrategy
 from pandas import DataFrame
-from pandas import Series
 
 class SimpleStrategy(IStrategy):
     timeframe = '5m'
-
-    minimal_roi = {
-        "0": 0.03,
-        "60": 0.02,
-        "120": 0.01
-    }
-
-    stoploss = -0.03
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         delta = dataframe['close'].diff()
