@@ -12,7 +12,6 @@ services:
     command: >
       trade
       --config /freqtrade/user_data/config.json
-      --strategy PatternRecorder
 
   config-api:
     build:
