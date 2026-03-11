@@ -9,6 +9,7 @@ RUN pip install flask gunicorn --quiet
 COPY user_data/config_api.py /freqtrade/user_data/config_api.py
 COPY user_data/config_manager.html /freqtrade/user_data/config_manager.html
 COPY user_data/config.json /freqtrade/user_data/config.json
+COPY user_data/strategies /freqtrade/user_data/strategies
 
 EXPOSE 8081
 

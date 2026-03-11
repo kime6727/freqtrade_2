@@ -12,6 +12,7 @@ services:
     command: >
       trade
       --config /freqtrade/user_data/config.json
+      --strategy SimpleStrategy
 
   config-api:
     build:
