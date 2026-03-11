@@ -3,13 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Freqtrade 配置管理器</title>
+    <title>Freqtrade 智能配置向导</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -17,15 +13,10 @@
             padding: 20px;
             color: #eee;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #00d4ff;
-        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 10px; color: #00d4ff; }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; }
+        
         .panel {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
@@ -35,25 +26,45 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .panel h2 {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             color: #00d4ff;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #aaa;
+        
+        .form-section { margin-bottom: 25px; }
+        .form-section-title {
+            color: #ffa502;
             font-size: 14px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #fff;
+            font-weight: 500;
+        }
+        .form-group .help-text {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+        .form-group .help-text strong { color: #00ff88; }
+        .form-group .help-text .warning { color: #ffa502; }
+        
         input, select, textarea {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
+            border-radius: 8px;
             background: rgba(0, 0, 0, 0.3);
             color: #fff;
             font-size: 14px;
@@ -62,367 +73,388 @@
             outline: none;
             border-color: #00d4ff;
         }
-        .row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-        }
+        
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 600px) { .row { grid-template-columns: 1fr; } }
+        
         .btn {
-            padding: 12px 24px;
+            padding: 14px 28px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
+            font-size: 15px;
+            font-weight: 600;
             transition: all 0.3s;
             margin-right: 10px;
             margin-bottom: 10px;
         }
-        .btn-primary {
-            background: #00d4ff;
-            color: #1a1a2e;
-        }
-        .btn-primary:hover {
-            background: #00b8e6;
-            transform: translateY(-2px);
-        }
-        .btn-success {
-            background: #00ff88;
-            color: #1a1a2e;
-        }
-        .btn-success:hover {
-            background: #00e67a;
-            transform: translateY(-2px);
-        }
-        .btn-danger {
-            background: #ff4757;
-            color: white;
-        }
-        .btn-danger:hover {
-            background: #ff3344;
-            transform: translateY(-2px);
-        }
-        .btn-warning {
-            background: #ffa502;
-            color: #1a1a2e;
-        }
-        .btn-warning:hover {
-            background: #ff9500;
-            transform: translateY(-2px);
-        }
-        .config-editor {
-            display: none;
-        }
-        .config-editor.active {
-            display: block;
-        }
-        #configJson {
-            font-family: 'Monaco', 'Menlo', monospace;
-            min-height: 400px;
-            resize: vertical;
-        }
+        .btn-primary { background: #00d4ff; color: #1a1a2e; }
+        .btn-primary:hover { background: #00b8e6; transform: translateY(-2px); }
+        .btn-success { background: #00ff88; color: #1a1a2e; }
+        .btn-success:hover { background: #00e67a; transform: translateY(-2px); }
+        .btn-outline { background: transparent; border: 2px solid #00d4ff; color: #00d4ff; }
+        .btn-outline:hover { background: rgba(0, 212, 255, 0.1); }
+        
         .status {
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
             display: none;
         }
-        .status.success {
-            background: rgba(0, 255, 136, 0.2);
-            border: 1px solid #00ff88;
-            color: #00ff88;
-            display: block;
+        .status.success { background: rgba(0, 255, 136, 0.2); border: 1px solid #00ff88; color: #00ff88; display: block; }
+        .status.error { background: rgba(255, 71, 87, 0.2); border: 1px solid #ff4757; color: #ff4757; display: block; }
+        .status.info { background: rgba(0, 212, 255, 0.2); border: 1px solid #00d4ff; color: #00d4ff; display: block; }
+        
+        #jsonPreview {
+            font-family: 'Monaco', 'Menlo', monospace;
+            min-height: 200px;
+            resize: vertical;
+            font-size: 12px;
         }
-        .status.error {
-            background: rgba(255, 71, 87, 0.2);
-            border: 1px solid #ff4757;
-            color: #ff4757;
-            display: block;
-        }
-        .status.info {
-            background: rgba(0, 212, 255, 0.2);
-            border: 1px solid #00d4ff;
-            color: #00d4ff;
-            display: block;
-        }
-        .safe-config {
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-        .safe-config h3 {
-            color: #00ff88;
-            margin-bottom: 10px;
-        }
-        .safe-config ul {
-            margin: 0;
-            padding-left: 20px;
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 6px;
             color: #aaa;
+            cursor: pointer;
         }
-        .safe-config li {
-            margin-bottom: 5px;
+        .tab.active { background: #00d4ff; color: #1a1a2e; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0,0,0,0.3);
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
         }
-        .danger-config {
-            background: rgba(255, 71, 87, 0.1);
-            border: 1px solid rgba(255, 71, 87, 0.3);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-        .danger-config h3 {
-            color: #ff4757;
-            margin-bottom: 10px;
-        }
-        .danger-config ul {
-            margin: 0;
-            padding-left: 20px;
-            color: #aaa;
-        }
-        .danger-config li {
-            margin-bottom: 5px;
-        }
+        .checkbox-item input { width: auto; }
+        .checkbox-item.checked { background: rgba(0, 212, 255, 0.3); border-color: #00d4ff; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🚀 Freqtrade 配置管理器</h1>
+        <h1>🚀 Freqtrade 智能配置向导</h1>
+        <p class="subtitle">简单易懂的交易机器人配置页面</p>
+        
+        <div id="status" class="status"></div>
         
         <div class="panel">
-            <h2>🔗 API 连接设置</h2>
+            <h2>📊 交易对设置</h2>
+            <p class="help-text" style="margin-bottom: 15px;">选择你想让机器人交易的加密货币品种</p>
+            
+            <div class="form-group">
+                <label>📈 交易对列表（勾选要交易的币种）</label>
+                <div class="checkbox-group" id="pairsGroup">
+                    <label class="checkbox-item"><input type="checkbox" value="BTC/USDT"> BTC/USDT</label>
+                    <label class="checkbox-item"><input type="checkbox" value="ETH/USDT"> ETH/USDT</label>
+                    <label class="checkbox-item"><input type="checkbox" value="BNB/USDT"> BNB/USDT</label>
+                    <label class="checkbox-item"><input type="checkbox" value="SOL/USDT"> SOL/USDT</label>
+                    <label class="checkbox-item"><input type="checkbox" value="XRP/USDT"> XRP/USDT</label>
+                    <label class="checkbox-item"><input type="checkbox" value="ADA/USDT"> ADA/USDT</label>
+                    <label class="checkbox-item"><input type="checkbox" value="DOGE/USDT"> DOGE/USDT</label>
+                    <label class="checkbox-item"><input type="checkbox" value="AVAX/USDT"> AVAX/USDT</label>
+                    <label class="checkbox-item"><input type="checkbox" value="DOT/USDT"> DOT/USDT</label>
+                    <label class="checkbox-item"><input type="checkbox" value="MATIC/USDT"> MATIC/USDT</label>
+                </div>
+                <p class="help-text">💡 <strong>提示：</strong>建议先选择1-3个币种，熟悉后再增加。新手推荐 BTC/USDT + ETH/USDT</p>
+            </div>
+            
+            <div class="form-group">
+                <label>🏦 交易所</label>
+                <select id="exchange">
+                    <option value="binance">Binance（币安）- 推荐</option>
+                    <option value="bybit">Bybit</option>
+                    <option value="okx">OKX</option>
+                    <option value="kucoin">KuCoin</option>
+                </select>
+                <p class="help-text">💡 <strong>提示：</strong>选择你要使用的交易所。需要先去交易所申请API才能真正交易</p>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>💰 资金管理</h2>
+            
             <div class="row">
                 <div class="form-group">
-                    <label>API 服务器地址</label>
-                    <input type="text" id="apiUrl" value="http://localhost:8080" placeholder="http://localhost:8080">
+                    <label>🎯 同时交易单数</label>
+                    <input type="number" id="maxOpenTrades" value="3" min="1" max="10">
+                    <p class="help-text">🎓 <strong>什么意思：</strong>一次同时持有多少个仓位。建议新手设为1-2单，熟练后再增加</p>
                 </div>
+                
                 <div class="form-group">
-                    <label>用户名</label>
-                    <input type="text" id="apiUsername" value="freqtrader" placeholder="freqtrader">
-                </div>
-                <div class="form-group">
-                    <label>密码</label>
-                    <input type="password" id="apiPassword" value="freqtrade123" placeholder="密码">
+                    <label>💵 单笔下单金额</label>
+                    <input type="text" id="stakeAmount" value="unlimited">
+                    <p class="help-text">🎓 <strong>什么意思：</strong>每次买入花多少钱。填 <strong>unlimited</strong> 表示用全部可用资金；填数字如 <strong>100</strong> 表示每次用100USDT</p>
                 </div>
             </div>
-            <button class="btn btn-primary" onclick="testConnection()">🔌 测试连接</button>
+            
+            <div class="row">
+                <div class="form-group">
+                    <label>📊 资金使用比例</label>
+                    <input type="number" id="tradableBalance" value="0.99" step="0.01" min="0.01" max="1">
+                    <p class="help-text">🎓 <strong>什么意思：</strong>拿出多少比例的钱来交易。0.99 = 99%的钱用来交易，0.5 = 用一半的钱</p>
+                </div>
+                
+                <div class="form-group">
+                    <label>🎮 交易模式</label>
+                    <select id="dryRun">
+                        <option value="true">✅ 模拟交易（新手推荐先用这个）</option>
+                        <option value="false">💰 真实交易（有钱 real money！）</option>
+                    </select>
+                    <p class="help-text">🎓 <strong>什么意思：</strong>模拟交易不会真花钱，只是练习！等熟悉后再切换到真实交易</p>
+                </div>
+            </div>
         </div>
-
-        <div id="status" class="status"></div>
-
+        
         <div class="panel">
-            <h2>⚙️ 配置操作</h2>
-            <button class="btn btn-primary" onclick="loadConfig()">📥 获取当前配置</button>
-            <button class="btn btn-success" onclick="showSaveDialog()">💾 保存配置</button>
-            <button class="btn btn-warning" onclick="reloadBotConfig()">🔄 重载Bot配置</button>
-            <button class="btn btn-danger" onclick="restartBot()">🔁 重启Bot</button>
+            <h2>🛡️ 风险控制（止盈止损）</h2>
+            
+            <div class="row">
+                <div class="form-group">
+                    <label>📉 止损比例（%）</label>
+                    <input type="number" id="stoploss" value="-0.03" step="0.01" style="color: #ff4757;">
+                    <p class="help-text">🎓 <strong>什么意思：</strong>亏损多少百分比自动卖出。-0.03 = 亏损3%就止损。建议设置 <strong>-0.03</strong> 到 <strong>-0.05</strong></p>
+                </div>
+                
+                <div class="form-group">
+                    <label>📈 止盈比例（%）</label>
+                    <input type="text" id="minimalRoi" value='{"0": 0.03, "60": 0.02, "120": 0.01}'>
+                    <p class="help-text">🎓 <strong>什么意思：</strong>盈利多少自动卖出。格式是JSON。<strong>{"0": 0.03}</strong> 表示盈利3%就卖。<br>💡 简单理解：填 <strong>0.03</strong> 表示盈利3%止盈</p>
+                </div>
+            </div>
         </div>
-
-        <div class="panel config-editor" id="configPanel">
-            <h2>📝 配置编辑器 (JSON)</h2>
+        
+        <div class="panel">
+            <h2>🔗 API 配置（可选）</h2>
+            <p class="help-text" style="margin-bottom: 15px;">如果需要从真实交易所交易，需要配置API密钥</p>
             
-            <div class="safe-config">
-                <h3>✅ 可安全修改的配置</h3>
-                <ul>
-                    <li><strong>max_open_trades</strong> - 最大持仓数量</li>
-                    <li><strong>stake_amount</strong> - 每次交易金额</li>
-                    <li><strong>dry_run</strong> - 是否模拟交易</li>
-                    <li><strong>tradable_balance_ratio</strong> - 可交易资金比例</li>
-                    <li><strong>minimal_roi</strong> - 止盈配置</li>
-                    <li><strong>stoploss</strong> - 止损比例</li>
-                </ul>
+            <div class="row">
+                <div class="form-group">
+                    <label>🔑 API Key</label>
+                    <input type="text" id="apiKey" placeholder="从交易所获取">
+                    <p class="help-text">💡 在交易所的API管理页面申请</p>
+                </div>
+                
+                <div class="form-group">
+                    <label>🔐 API Secret</label>
+                    <input type="password" id="apiSecret" placeholder="从交易所获取">
+                    <p class="help-text">💡 一定要保密，不要告诉别人</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>📝 配置预览与保存</h2>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('form')">📝 表单模式</button>
+                <button class="tab" onclick="switchTab('json')">📋 JSON预览</button>
             </div>
             
-            <div class="danger-config">
-                <h3>⚠️ 谨慎修改的配置</h3>
-                <ul>
-                    <li><strong>exchange</strong> - 交易所配置</li>
-                    <li><strong>api_server</strong> - API服务器设置</li>
-                    <li><strong>trading_mode</strong> - 交易模式</li>
-                </ul>
+            <div id="tabForm" class="tab-content active">
+                <p style="color: #888; margin-bottom: 15px;">👆 上面的表单已经填好了，点击下方按钮保存配置</p>
             </div>
             
-            <textarea id="configJson" rows="20"></textarea>
-            <div style="margin-top: 15px;">
+            <div id="tabJson" class="tab-content">
+                <textarea id="jsonPreview" readonly></textarea>
+                <p class="help-text" style="margin-top: 10px;">💡 这是自动生成的JSON配置文件，你也可以直接在这里修改</p>
+            </div>
+            
+            <div style="margin-top: 20px;">
                 <button class="btn btn-success" onclick="saveConfig()">💾 保存配置</button>
-                <button class="btn btn-primary" onclick="formatJson()">✨ 格式化JSON</button>
-                <button class="btn" onclick="validateJson()">✓ 验证JSON</button>
+                <button class="btn btn-outline" onclick="loadFromJson()">📥 从JSON加载</button>
+                <button class="btn btn-primary" onclick="updateJsonPreview()">🔄 刷新JSON预览</button>
             </div>
+        </div>
+        
+        <div class="panel" style="background: rgba(255, 165, 2, 0.1); border-color: #ffa502;">
+            <h2 style="color: #ffa502;">⚠️ 重要提示</h2>
+            <p class="help-text" style="color: #ffa502;">
+                1. 保存配置后，需要在 <strong>Dokploy</strong> 中重启 <strong>freqtrade</strong> 容器才能生效<br>
+                2. 新手强烈建议先使用 <strong>模拟交易</strong> 模式练习<br>
+                3. 真实交易前，请先去交易所申请API并设置好权限<br>
+                4. 投资有风险，入市需谨慎！
+            </p>
         </div>
     </div>
 
     <script>
         let currentConfig = null;
-
-        function getApiCredentials() {
-            return {
-                url: document.getElementById('apiUrl').value.replace(/\/$/, ''),
-                username: document.getElementById('apiUsername').value,
-                password: document.getElementById('apiPassword').value
-            };
-        }
-
+        
         function showStatus(message, type) {
             const statusEl = document.getElementById('status');
             statusEl.textContent = message;
             statusEl.className = 'status ' + type;
-            setTimeout(() => {
-                statusEl.className = 'status';
-            }, 5000);
+            setTimeout(() => { statusEl.className = 'status'; }, 8000);
         }
-
-        async function apiRequest(endpoint, method = 'GET', body = null) {
-            const creds = getApiCredentials();
-            const url = `${creds.url}/api/v1${endpoint}`;
-            
-            const headers = {
-                'Content-Type': 'application/json'
-            };
-
-            const response = await fetch(url, {
-                method: method,
-                headers: headers,
-                body: body ? JSON.stringify(body) : null
+        
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            if (tab === 'form') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('tabForm').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('tabJson').classList.add('active');
+                updateJsonPreview();
+            }
+        }
+        
+        function getSelectedPairs() {
+            const pairs = [];
+            document.querySelectorAll('#pairsGroup input:checked').forEach(cb => {
+                pairs.push(cb.value);
             });
-
-            if (response.status === 401) {
-                const authResponse = await fetch(`${creds.url}/api/v1/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        username: creds.username,
-                        password: creds.password
-                    })
-                });
-                
-                if (authResponse.ok) {
-                    const authData = await authResponse.json();
-                    headers['Authorization'] = `Bearer ${authData.access_token}`;
-                    
-                    const retryResponse = await fetch(url, {
-                        method: method,
-                        headers: headers,
-                        body: body ? JSON.stringify(body) : null
-                    });
-                    
-                    if (!retryResponse.ok) {
-                        throw new Error(`API请求失败: ${retryResponse.statusText}`);
-                    }
-                    return retryResponse.json();
-                } else {
-                    throw new Error('认证失败，请检查用户名和密码');
-                }
-            }
-
-            if (!response.ok) {
-                throw new Error(`API请求失败: ${response.statusText}`);
-            }
-
-            return response.json();
+            return pairs;
         }
-
-        async function testConnection() {
+        
+        function setSelectedPairs(pairs) {
+            document.querySelectorAll('#pairsGroup input').forEach(cb => {
+                cb.checked = pairs.includes(cb.value);
+            });
+        }
+        
+        function buildConfig() {
+            const pairs = getSelectedPairs();
+            let minimalRoi;
             try {
-                showStatus('正在连接...', 'info');
-                const creds = getApiCredentials();
-                const response = await fetch(`${creds.url}/api/v1/ping`);
-                
-                if (response.ok) {
-                    showStatus('✅ 连接成功！Bot正在运行。', 'success');
-                } else {
-                    showStatus('❌ 连接失败: ' + response.statusText, 'error');
-                }
-            } catch (error) {
-                showStatus('❌ 连接失败: ' + error.message, 'error');
+                minimalRoi = JSON.parse(document.getElementById('minimalRoi').value);
+            } catch(e) {
+                minimalRoi = { "0": parseFloat(document.getElementById('minimalRoi').value) };
+            }
+            
+            return {
+                "max_open_trades": parseInt(document.getElementById('maxOpenTrades').value),
+                "stake_currency": "USDT",
+                "stake_amount": document.getElementById('stakeAmount').value,
+                "tradable_balance_ratio": parseFloat(document.getElementById('tradableBalance').value),
+                "fiat_display_currency": "USD",
+                "dry_run": document.getElementById('dryRun').value === "true",
+                "cancel_open_orders_on_exit": false,
+                "unfilledtimeout": { "entry": 10, "exit": 10 },
+                "entry_pricing": {
+                    "price_side": "same",
+                    "use_order_book": true,
+                    "order_book_top": 1
+                },
+                "exit_pricing": {
+                    "price_side": "same",
+                    "use_order_book": true,
+                    "order_book_top": 1
+                },
+                "exchange": {
+                    "name": document.getElementById('exchange').value,
+                    "key": document.getElementById('apiKey').value,
+                    "secret": document.getElementById('apiSecret').value,
+                    "ccxt_config": {},
+                    "ccxt_async_config": {},
+                    "pair_whitelist": pairs
+                },
+                "pairlists": [{ "method": "StaticPairList" }],
+                "edge": { "enabled": false },
+                "api_server": {
+                    "enabled": true,
+                    "listen_ip_address": "0.0.0.0",
+                    "listen_port": 8080,
+                    "verbosity": "error",
+                    "enable_openapi": false,
+                    "jwt_secret_key": "freqtrade-jwt-secret-key-2024",
+                    "CORS_origins": ["http://128.1.40.110:8081"],
+                    "username": "freqtrader",
+                    "password": "freqtrade123",
+                    "ws_token": "freqtrade-ws-token-2024"
+                },
+                "bot_name": "freqtrade",
+                "initial_state": "running",
+                "force_entry_enable": true,
+                "stoploss": parseFloat(document.getElementById('stoploss').value),
+                "minimal_roi": minimalRoi,
+                "internals": { "process_throttle_secs": 5 }
+            };
+        }
+        
+        function updateJsonPreview() {
+            const config = buildConfig();
+            document.getElementById('jsonPreview').value = JSON.stringify(config, null, 4);
+        }
+        
+        function parseConfigToForm(config) {
+            if (config.max_open_trades) document.getElementById('maxOpenTrades').value = config.max_open_trades;
+            if (config.stake_amount) document.getElementById('stakeAmount').value = config.stake_amount;
+            if (config.tradable_balance_ratio) document.getElementById('tradableBalance').value = config.tradable_balance_ratio;
+            if (config.dry_run !== undefined) document.getElementById('dryRun').value = config.dry_run.toString();
+            if (config.stoploss !== undefined) document.getElementById('stoploss').value = config.stoploss;
+            if (config.minimal_roi) document.getElementById('minimalRoi').value = JSON.stringify(config.minimal_roi);
+            if (config.exchange) {
+                if (config.exchange.name) document.getElementById('exchange').value = config.exchange.name;
+                if (config.exchange.key) document.getElementById('apiKey').value = config.exchange.key;
+                if (config.exchange.secret) document.getElementById('apiSecret').value = config.exchange.secret;
+                if (config.exchange.pair_whitelist) setSelectedPairs(config.exchange.pair_whitelist);
             }
         }
-
+        
         async function loadConfig() {
             try {
-                showStatus('正在获取配置...', 'info');
+                showStatus('正在加载配置...', 'info');
                 const response = await fetch('/api/config');
                 const result = await response.json();
                 if (result.status === 'success') {
                     currentConfig = result.data;
-                    document.getElementById('configJson').value = JSON.stringify(result.data, null, 2);
-                    document.getElementById('configPanel').classList.add('active');
+                    parseConfigToForm(result.data);
+                    updateJsonPreview();
                     showStatus('✅ 配置已加载！', 'success');
                 } else {
-                    showStatus('❌ 获取配置失败: ' + result.message, 'error');
+                    showStatus('❌ 加载失败: ' + result.message, 'error');
                 }
             } catch (error) {
-                showStatus('❌ 获取配置失败: ' + error.message, 'error');
+                showStatus('❌ 加载失败: ' + error.message, 'error');
             }
         }
-
-        function showSaveDialog() {
-            if (!currentConfig) {
-                showStatus('请先点击"获取当前配置"', 'error');
-                return;
-            }
-            document.getElementById('configPanel').classList.add('active');
-            window.scrollTo(0, document.getElementById('configPanel').offsetTop);
-        }
-
+        
         async function saveConfig() {
-            const jsonStr = document.getElementById('configJson').value;
-            try {
-                JSON.parse(jsonStr);
-            } catch (e) {
-                showStatus('❌ JSON格式无效: ' + e.message, 'error');
-                return;
-            }
-
             try {
                 showStatus('正在保存配置...', 'info');
-                const saveUrl = '/api/v1/save_config';
-                const response = await fetch(saveUrl, {
+                const config = buildConfig();
+                const response = await fetch('/api/config', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: jsonStr
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
                 });
-
-                if (response.ok) {
-                    showStatus('✅ 配置已保存！请记得点击"重载Bot配置"使更改生效。', 'success');
+                const result = await response.json();
+                if (result.status === 'success') {
+                    showStatus('✅ 配置已保存！请在Dokploy中重启freqtrade容器使配置生效', 'success');
                 } else {
-                    const errorText = await response.text();
-                    showStatus('❌ 保存失败: ' + errorText, 'error');
+                    showStatus('❌ 保存失败: ' + result.message, 'error');
                 }
             } catch (error) {
                 showStatus('❌ 保存失败: ' + error.message, 'error');
             }
         }
-
-        async function reloadBotConfig() {
-            showStatus('✅ 配置已保存！请在Dokploy中重启freqtrade容器使配置生效。', 'success');
-        }
-
-        async function restartBot() {
-            showStatus('ℹ️ 请在Dokploy中重启freqtrade容器', 'info');
-        }
-
-        function formatJson() {
-            const textarea = document.getElementById('configJson');
+        
+        function loadFromJson() {
             try {
-                const obj = JSON.parse(textarea.value);
-                textarea.value = JSON.stringify(obj, null, 2);
-                showStatus('✅ JSON已格式化', 'success');
-            } catch (e) {
-                showStatus('❌ JSON格式无效: ' + e.message, 'error');
+                const json = document.getElementById('jsonPreview').value;
+                const config = JSON.parse(json);
+                parseConfigToForm(config);
+                showStatus('✅ 已从JSON加载到表单', 'success');
+            } catch(e) {
+                showStatus('❌ JSON格式无效', 'error');
             }
         }
-
-        function validateJson() {
-            const textarea = document.getElementById('configJson');
-            try {
-                JSON.parse(textarea.value);
-                showStatus('✅ JSON格式有效', 'success');
-            } catch (e) {
-                showStatus('❌ JSON格式无效: ' + e.message, 'error');
-            }
-        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConfig();
+        });
     </script>
 </body>
 </html>
