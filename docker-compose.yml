@@ -8,12 +8,27 @@ services:
       - "./user_data:/freqtrade/user_data"
     ports:
       - "0.0.0.0:8080:8080"
-      - "0.0.0.0:8081:8081"
+    environment:
+      - CONFIG_PATH=/freqtrade/user_data/config.json
     command: >
-      sh -c "pip install flask -q && python /freqtrade/user_data/config_api.py &
-      sleep 2
       trade
       --logfile /freqtrade/user_data/logs/freqtrade.log
       --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
       --config /freqtrade/user_data/config.json
-      --strategy SampleStrategy"
+      --strategy SampleStrategy
+    depends_on:
+      - config-api
+
+  config-api:
+    image: python:3.11-slim
+    restart: unless-stopped
+    container_name: freqtrade-config-api
+    volumes:
+      - "./user_data:/freqtrade/user_data"
+    ports:
+      - "0.0.0.0:8081:8081"
+    working_dir: /freqtrade/user_data
+    command: >
+      sh -c "pip install flask -q && python config_api.py"
+    environment:
+      - CONFIG_PATH=/freqtrade/user_data/config.json
