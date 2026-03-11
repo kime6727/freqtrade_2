@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freqtrade 配置管理器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #eee;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #00d4ff;
+        }
+        .panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .panel h2 {
+            margin-bottom: 15px;
+            color: #00d4ff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #aaa;
+            font-size: 14px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 14px;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+        .row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .btn-primary {
+            background: #00d4ff;
+            color: #1a1a2e;
+        }
+        .btn-primary:hover {
+            background: #00b8e6;
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background: #00ff88;
+            color: #1a1a2e;
+        }
+        .btn-success:hover {
+            background: #00e67a;
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            background: #ff4757;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #ff3344;
+            transform: translateY(-2px);
+        }
+        .btn-warning {
+            background: #ffa502;
+            color: #1a1a2e;
+        }
+        .btn-warning:hover {
+            background: #ff9500;
+            transform: translateY(-2px);
+        }
+        .config-editor {
+            display: none;
+        }
+        .config-editor.active {
+            display: block;
+        }
+        #configJson {
+            font-family: 'Monaco', 'Menlo', monospace;
+            min-height: 400px;
+            resize: vertical;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .status.success {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            display: block;
+        }
+        .status.error {
+            background: rgba(255, 71, 87, 0.2);
+            border: 1px solid #ff4757;
+            color: #ff4757;
+            display: block;
+        }
+        .status.info {
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+            display: block;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #00d4ff;
+        }
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #00d4ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .api-settings {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .api-settings h3 {
+            color: #ffc107;
+            margin-bottom: 10px;
+        }
+        .safe-config {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .safe-config h3 {
+            color: #00ff88;
+            margin-bottom: 10px;
+        }
+        .safe-config ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #aaa;
+        }
+        .safe-config li {
+            margin-bottom: 5px;
+        }
+        .danger-config {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .danger-config h3 {
+            color: #ff4757;
+            margin-bottom: 10px;
+        }
+        .danger-config ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #aaa;
+        }
+        .danger-config li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Freqtrade 配置管理器</h1>
+        
+        <div class="panel">
+            <h2>🔗 API 连接设置</h2>
+            <div class="row">
+                <div class="form-group">
+                    <label>API 服务器地址</label>
+                    <input type="text" id="apiUrl" value="http://localhost:8080" placeholder="http://localhost:8080">
+                </div>
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="apiUsername" value="freqtrader" placeholder="freqtrader">
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="apiPassword" value="freqtrade123" placeholder="密码">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="testConnection()">🔌 测试连接</button>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <div class="panel">
+            <h2>⚙️ 配置操作</h2>
+            <button class="btn btn-primary" onclick="loadConfig()">📥 获取当前配置</button>
+            <button class="btn btn-success" onclick="showSaveDialog()">💾 保存配置</button>
+            <button class="btn btn-warning" onclick="reloadBotConfig()">🔄 重载Bot配置</button>
+            <button class="btn btn-danger" onclick="restartBot()">🔁 重启Bot</button>
+        </div>
+
+        <div class="panel config-editor" id="configPanel">
+            <h2>📝 配置编辑器 (JSON)</h2>
+            
+            <div class="safe-config">
+                <h3>✅ 可安全修改的配置（运行时可更改）</h3>
+                <ul>
+                    <li><strong>max_open_trades</strong> - 最大持仓数量</li>
+                    <li><strong>stake_amount</strong> - 每次交易金额</li>
+                    <li><strong>dry_run</strong> - 是否模拟交易</li>
+                    <li><strong>tradable_balance_ratio</strong> - 可交易资金比例</li>
+                    <li><strong>minimal_roi</strong> - 止盈配置</li>
+                    <li><strong>stoploss</strong> - 止损比例</li>
+                    <li><strong>trailing_stop</strong> - 追踪止损</li>
+                    <li><strong>pair_whitelist</strong> - 交易对白名单</li>
+                </ul>
+            </div>
+            
+            <div class="danger-config">
+                <h3>⚠️ 谨慎修改的配置（建议重启Bot）</h3>
+                <ul>
+                    <li><strong>exchange</strong> - 交易所配置（key/secret等）</li>
+                    <li><strong>api_server</strong> - API服务器设置</li>
+                    <li><strong>pairlists</strong> - 交易对筛选规则</li>
+                    <li><strong>timeframe</strong> - K线周期</li>
+                    <li><strong>trading_mode</strong> - 交易模式（现货/合约）</li>
+                </ul>
+            </div>
+            
+            <div class="api-settings">
+                <h3>⚠️ 使用说明</h3>
+                <p>1. 修改配置后点击"保存配置"保存到文件<br>
+                2. 点击"重载Bot配置"使更改生效（安全方式）<br>
+                3. 如遇问题，点击"重启Bot"完全重启服务</p>
+            </div>
+            
+            <textarea id="configJson" rows="20"></textarea>
+            <div style="margin-top: 15px;">
+                <button class="btn btn-success" onclick="saveConfig()">💾 保存配置</button>
+                <button class="btn btn-primary" onclick="formatJson()">✨ 格式化JSON</button>
+                <button class="btn" onclick="validateJson()">✓ 验证JSON</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentConfig = null;
+
+        function getApiCredentials() {
+            return {
+                url: document.getElementById('apiUrl').value.replace(/\/$/, ''),
+                username: document.getElementById('apiUsername').value,
+                password: document.getElementById('apiPassword').value
+            };
+        }
+
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = 'status ' + type;
+            setTimeout(() => {
+                statusEl.className = 'status';
+            }, 5000);
+        }
+
+        async function apiRequest(endpoint, method = 'GET', body = null) {
+            const creds = getApiCredentials();
+            const url = `${creds.url}/api/v1${endpoint}`;
+            
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            const response = await fetch(url, {
+                method: method,
+                headers: headers,
+                body: body ? JSON.stringify(body) : null
+            });
+
+            if (response.status === 401) {
+                const authResponse = await fetch(`${creds.url}/api/v1/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: creds.username,
+                        password: creds.password
+                    })
+                });
+                
+                if (authResponse.ok) {
+                    const authData = await authResponse.json();
+                    headers['Authorization'] = `Bearer ${authData.access_token}`;
+                    
+                    const retryResponse = await fetch(url, {
+                        method: method,
+                        headers: headers,
+                        body: body ? JSON.stringify(body) : null
+                    });
+                    
+                    if (!retryResponse.ok) {
+                        throw new Error(`API请求失败: ${retryResponse.statusText}`);
+                    }
+                    return retryResponse.json();
+                } else {
+                    throw new Error('认证失败，请检查用户名和密码');
+                }
+            }
+
+            if (!response.ok) {
+                throw new Error(`API请求失败: ${response.statusText}`);
+            }
+
+            return response.json();
+        }
+
+        async function testConnection() {
+            try {
+                showStatus('正在连接...', 'info');
+                const creds = getApiCredentials();
+                const response = await fetch(`${creds.url}/api/v1/ping`);
+                
+                if (response.ok) {
+                    showStatus('✅ 连接成功！Bot正在运行。', 'success');
+                } else {
+                    showStatus('❌ 连接失败: ' + response.statusText, 'error');
+                }
+            } catch (error) {
+                showStatus('❌ 连接失败: ' + error.message, 'error');
+            }
+        }
+
+        async function loadConfig() {
+            try {
+                showStatus('正在获取配置...', 'info');
+                const config = await apiRequest('/show_config');
+                currentConfig = config;
+                document.getElementById('configJson').value = JSON.stringify(config, null, 2);
+                document.getElementById('configPanel').classList.add('active');
+                showStatus('✅ 配置已加载！', 'success');
+            } catch (error) {
+                showStatus('❌ 获取配置失败: ' + error.message, 'error');
+            }
+        }
+
+        function showSaveDialog() {
+            if (!currentConfig) {
+                showStatus('请先点击"获取当前配置"', 'error');
+                return;
+            }
+            document.getElementById('configPanel').classList.add('active');
+            window.scrollTo(0, document.getElementById('configPanel').offsetTop);
+        }
+
+        async function saveConfig() {
+            const jsonStr = document.getElementById('configJson').value;
+            try {
+                JSON.parse(jsonStr);
+            } catch (e) {
+                showStatus('❌ JSON格式无效: ' + e.message, 'error');
+                return;
+            }
+
+            try {
+                showStatus('正在保存配置...', 'info');
+                const creds = getApiCredentials();
+                
+                const saveUrl = `${creds.url}:8081/api/v1/save_config`;
+                const response = await fetch(saveUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: jsonStr
+                });
+
+                if (response.ok) {
+                    showStatus('✅ 配置已保存到文件！请记得点击"重载Bot配置"使更改生效。', 'success');
+                } else {
+                    const errorText = await response.text();
+                    showStatus('❌ 保存失败: ' + errorText, 'error');
+                }
+            } catch (error) {
+                showStatus('❌ 保存失败: ' + error.message, 'error');
+            }
+        }
+
+        async function reloadBotConfig() {
+            try {
+                showStatus('正在重载配置...', 'info');
+                const result = await apiRequest('/reload_config', 'POST');
+                showStatus('✅ 配置已重载！变更已生效。', 'success');
+            } catch (error) {
+                showStatus('❌ 重载失败: ' + error.message, 'error');
+            }
+        }
+
+        async function restartBot() {
+            if (!confirm('确定要重启Bot吗？这将中断当前交易。')) {
+                return;
+            }
+            try {
+                showStatus('正在重启Bot...', 'info');
+                await apiRequest('/stop', 'POST');
+                setTimeout(async () => {
+                    try {
+                        await apiRequest('/start', 'POST');
+                        showStatus('✅ Bot已重启！', 'success');
+                    } catch (e) {
+                        showStatus('❌ 启动失败: ' + e.message, 'error');
+                    }
+                }, 3000);
+            } catch (error) {
+                showStatus('❌ 重启失败: ' + error.message, 'error');
+            }
+        }
+
+        function formatJson() {
+            const textarea = document.getElementById('configJson');
+            try {
+                const obj = JSON.parse(textarea.value);
+                textarea.value = JSON.stringify(obj, null, 2);
+                showStatus('✅ JSON已格式化', 'success');
+            } catch (e) {
+                showStatus('❌ JSON格式无效: ' + e.message, 'error');
+            }
+        }
+
+        function validateJson() {
+            const textarea = document.getElementById('configJson');
+            try {
+                JSON.parse(textarea.value);
+                showStatus('✅ JSON格式有效', 'success');
+            } catch (e) {
+                showStatus('❌ JSON格式无效: ' + e.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

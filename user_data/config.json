@@ -1,0 +1,63 @@
+{
+    "max_open_trades": 3,
+    "stake_currency": "USDT",
+    "stake_amount": "unlimited",
+    "tradable_balance_ratio": 0.99,
+    "fiat_display_currency": "USD",
+    "dry_run": true,
+    "cancel_open_orders_on_exit": false,
+    "unfilledtimeout": {
+        "entry": 10,
+        "exit": 10
+    },
+    "entry_pricing": {
+        "price_side": "same",
+        "use_order_book": true,
+        "order_book_top": 1
+    },
+    "exit_pricing": {
+        "price_side": "same",
+        "use_order_book": true,
+        "order_book_top": 1
+    },
+    "exchange": {
+        "name": "binance",
+        "key": "",
+        "secret": "",
+        "ccxt_config": {},
+        "ccxt_async_config": {},
+        "pair_whitelist": [
+            "BTC/USDT",
+            "ETH/USDT",
+            "BNB/USDT",
+            "SOL/USDT",
+            "XRP/USDT"
+        ]
+    },
+    "pairlists": [
+        {
+            "method": "StaticPairList"
+        }
+    ],
+    "edge": {
+        "enabled": false
+    },
+    "api_server": {
+        "enabled": true,
+        "listen_ip_address": "0.0.0.0",
+        "listen_port": 8080,
+        "verbosity": "error",
+        "enable_openapi": false,
+        "jwt_secret_key": "freqtrade-jwt-secret-key-2024",
+        "CORS_origins": [],
+        "username": "freqtrader",
+        "password": "freqtrade123",
+        "ws_token": "freqtrade-ws-token-2024"
+    },
+    "bot_name": "freqtrade",
+    "initial_state": "running",
+    "force_entry_enable": true,
+    "internals": {
+        "process_throttle_secs": 5
+    }
+}
