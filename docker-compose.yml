@@ -10,9 +10,10 @@ services:
     ports:
       - "8080:8080"
     command: >
-      trade
-      --config /freqtrade/user_data/config.json
-      --strategy SimpleStrategy
+      sh -c "mkdir -p /freqtrade/user_data/strategies && 
+             mkdir -p /freqtrade/user_data/data/bitget &&
+             mkdir -p /freqtrade/user_data/logs &&
+             trade --config /freqtrade/user_data/config.json --strategy SimpleStrategy"
 
   config-api:
     build:
